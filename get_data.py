@@ -5,6 +5,7 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 import time
 # Make sure to install playwright browsers by running playwright install on the command line or !playwright install from Jupyter
 import pandas as pd
+import asyncio
 
 
 async def get_html(url, selector, sleep=5, retries=3):
@@ -68,8 +69,7 @@ async def scrape_game(standings_file, directory):
         with open(save_path, "w+") as f:
             f.write(html)
 
-
-if __name__ == "__main__":
+async def main():
     current_year = date.today().year
 
     SEASONS = list(range(current_year - 7, current_year + 1))
@@ -90,3 +90,6 @@ if __name__ == "__main__":
         filepath = os.path.join(STANDINGS_DIR, f)
 
         await scrape_game(filepath, SCORES_DIR)
+
+if __name__ == "__main__":
+    asyncio.run(main())
