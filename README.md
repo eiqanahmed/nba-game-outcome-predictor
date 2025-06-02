@@ -1,6 +1,6 @@
 # NBA Game Outcome Predictor 🏀
 
-This project predicts the outcome of upcoming NBA games using machine learning trained on historical game data from the 2016–2024 NBA seasons.
+This project predicts the outcome of upcoming NBA games using machine learning trained on historical NBA game data.
 
 
 ## ⚙️ Overview:
