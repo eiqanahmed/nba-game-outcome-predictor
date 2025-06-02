@@ -46,6 +46,6 @@ As such it displays the prediction for each of the 30 teams next game (so the ta
 ## ⚙️ How it Works:
 1. Run get_data.py in order to obtain the historical game data required to train the RidgeClassifer model.
 2. Run parse_data.py in order to transform the data within the 'data' directory into a pandas dataframe that can be used to train the RidgeClassifier model.
-3. Run train_model.py in order to create and train the model using pandas dataframne created from running parse_data.py. Currently the 'nba_games.csv' has games from the beginning of the 2018 season to March 28, 2025, and the saved model (model.pkl) is trained on all games within this time period. If you would like to obtain data from the latest games and further train the model on such games as well, then run this file.
+3. Run train_model.py in order to create and train the model using pandas dataframne created from running parse_data.py. Currently the 'nba_games.csv' has games from the beginning of the 2018 season to March 28, 2025, and the saved model (sfs_model.pkl) is trained on all games within this time period. If you would like to obtain data from the latest games and further train the model on such games as well, then run this file.
 4. Run predict.py to obtain the predictions for each team's next game.
 5. (Optional) Run testing_accuracy.py to test the accuracy of the model on historical data.
