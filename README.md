@@ -9,7 +9,7 @@ This project predicts the outcome of upcoming NBA games using machine learning t
    `get_data.py` scrapes NBA games from [basketball-reference.com](https://www.basketball-reference.com) using Playwright.
 
 2. **Data Parsing**:  
-   `parse_data.py` converts raw HTML box scores into structured CSV data.
+   `parse_data.py` converts raw HTML box scores into a pandas dataframe that is saved as a CSV file.
 
 3. **Model Training**:  
    `train_model.py`:
