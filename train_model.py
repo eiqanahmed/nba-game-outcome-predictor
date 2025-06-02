@@ -6,46 +6,83 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import accuracy_score
 import requests
 import joblib
+from scipy.special import expit
 
 
 def add_target(group):
+    group = group.copy()  # prevent fragmentation warning
     group["target"] = group["won"].shift(-1)
     return group
 
 
-def predict_upcoming_games(data, model, predictors):
-    # Split the data
-    train = data[data["target"].isin([0, 1])]
-    test = data[data["target"] == 2].copy()
+def predict_upcoming_games(data_pug, model, predictors_pug):
 
-    # Train the model
-    model.fit(train[predictors], train["target"])
+    train = data_pug[data_pug["target"].isin([0, 1])]
+    test = data_pug[data_pug["target"] == 2].copy()
 
-    # Predict
-    predictions = model.predict(test[predictors])
-    predictions = pd.Series(predictions, index=test.index)
+    model.fit(train[predictors_pug], train["target"])
 
-    # Build the output DataFrame
-    output = pd.DataFrame(index=test.index)
+    # Getting the decision scores and convert the score to a probability via sigmoid
+    decision_scores = model.decision_function(test[predictors_pug])
+    test["score"] = decision_scores
+    test["win_probability"] = expit(decision_scores)
 
-    # Rename and include relevant context columns
-    output["team"] = test["team_x"]
-    output["opponent"] = test["team_y"]
-    output["prediction"] = predictions
-    output["date"] = test["date_next"]
+    test["prediction"] = model.predict(test[predictors_pug])
 
-    output.reset_index(drop=True, inplace=True)
+    test["prediction"] = test["prediction"].map({0: "loss", 1: "win"})
 
-    return output
+    test["game_id"] = test.apply(
+        lambda row: "_".join(sorted([row["team_x"], row["team_y"]])) + "_" + str(row["date_next"]),
+        axis=1
+    )
+
+    # We keep only the row (team perspective) with the higher confidence score
+    test = test.sort_values("score", ascending=False).drop_duplicates("game_id")
+
+    output = pd.DataFrame({
+        "home_team": test["team_x"],
+        "opponent": test["team_y"],
+        "prediction": test["prediction"],
+        "win_probability": test["win_probability"],
+        "date": test["date_next"]
+    })
+
+    return output.reset_index(drop=True)
 
 
-def shift_col(team, col_name):
-    next_col = team[col_name].shift(-1)
+# def predict_upcoming_games(data_pug, model, predictors_pug):
+#     # Split the data
+#     train = data_pug[data_pug["target"].isin([0, 1])]
+#     test = data_pug[data_pug["target"] == 2].copy()
+#
+#     # Train the model
+#     model.fit(train[predictors_pug], train["target"])
+#
+#     # Predict
+#     predictions = model.predict(test[predictors_pug])
+#     predictions = pd.Series(predictions, index=test.index)
+#
+#     # Build the output DataFrame
+#     output = pd.DataFrame(index=test.index)
+#
+#     # Rename and include relevant context columns
+#     output["team"] = test["team_x"]
+#     output["opponent"] = test["team_y"]
+#     output["prediction"] = predictions
+#     output["date"] = test["date_next"]
+#
+#     output.reset_index(drop=True, inplace=True)
+#
+#     return output
+
+
+def shift_col(team_sc, col_name):
+    next_col = team_sc[col_name].shift(-1)
     return next_col
 
 
-def add_col(df, col_name):
-    return df.groupby("team", group_keys=False).apply(lambda x: shift_col(x, col_name))
+def add_col(df_ac, col_name):
+    return df_ac.groupby("team", group_keys=False).apply(lambda x: shift_col(x, col_name))
 
 
 def merge_next_game(row, team_mappings, next_games, reverse_team_mappings):
@@ -73,8 +110,12 @@ def merge_next_game(row, team_mappings, next_games, reverse_team_mappings):
     return pd.Series([home_abbrev, opponent_abbrev, date])
 
 
-def find_team_averages(team):
-    rolling = team.rolling(10).mean()
+# def find_team_averages(team):
+#     rolling = team.rolling(10).mean()
+#     return rolling
+def find_team_averages(team_fta):
+    numeric_cols = team_fta.select_dtypes(include='number')  # only numeric columns
+    rolling = numeric_cols.rolling(10).mean()
     return rolling
 
 
@@ -99,7 +140,9 @@ if __name__ == "__main__":
     del df["index_opp"]
 
     df = df.groupby("team", group_keys=False).apply(add_target)
-    df["target"][pd.isnull(df["target"])] = 2
+    df = df.copy()
+    # df["target"][pd.isnull(df["target"])] = 2
+    df.loc[pd.isnull(df["target"]), "target"] = 2
     df["target"] = df["target"].astype(int, errors="ignore")
 
     nulls = pd.isnull(df).sum()
@@ -232,18 +275,19 @@ if __name__ == "__main__":
 
     selected_columns = full.columns[~full.columns.isin(removed_columns)]
     sfs.fit(full[selected_columns], full["target"])
+    assert hasattr(sfs, "n_features_in_"), "SequentialFeatureSelector was not fitted properly."
     predictors = list(selected_columns[sfs.get_support()])
 
     # Saving the trained SequentialFeatureSelector with model inside
     joblib.dump(sfs, "sfs_model.pkl")
+    # joblib.dump(sfs.estimator_, "model.pkl")
 
     # Saving the selected predictors used for future prediction
     joblib.dump(predictors, "predictors.pkl")
 
-    full.to_csv("latest_full.csv", index=False)
+    full.to_csv("latest_full.csv")
 
     print("Model, predictors, and scaler saved successfully.")
-
 
 
 
