@@ -7,6 +7,7 @@ from sklearn.metrics import accuracy_score
 import requests
 import joblib
 from scipy.special import expit
+ from datetime import datetime
 
 
 def add_target(group):
@@ -215,8 +216,6 @@ if __name__ == "__main__":
     # List upcoming games:
     games = data["leagueSchedule"]["gameDates"]
     upcoming_games = []
-
-    from datetime import datetime
 
     today = datetime.today().date()
 
