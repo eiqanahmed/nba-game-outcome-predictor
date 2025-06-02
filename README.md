@@ -33,9 +33,10 @@ This project predicts the outcome of upcoming NBA games using machine learning t
 
 ## 🧪 Example Output (of a prediction):
 
-| team | opponent | prediction | date       |
-|------|----------|------------|------------|
-| IND  | NYK      | 1 (win)    | 2025-05-29 |
-| NYK  | IND      | 0 (loss)   | 2025-05-29 |
+| home team | opponent | prediction | probability (of the home team winning) | date       |
+|------|----------|------------|----------------------|------------|
+| IND  | NYK      | 1 (win)    |   0.54444                   |2025-05-29 |
+
+As such it displays the prediction for each of the 30 teams next game (so the table displays 15 rows). It only displays the prediction if the team has a next game so during the playoffs it only displays the appropriate predictions based on which teams are playing.
 
 
