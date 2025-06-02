@@ -36,7 +36,7 @@ This project predicts the outcome of upcoming NBA games using machine learning t
 As such it displays the prediction for each of the 30 teams next game (so the table displays 15 rows if all teams have a next game to play within the current season). It only displays the prediction if the team has a next game so during the playoffs it only displays the appropriate predictions based on which teams are playing.
 
 5. **Testing Accuracy**:
-  `testing_accuracy.py`:
+   `testing_accuracy.py`:
   - Tests the model's accuracy on historical data 
 
 6. **Installing Dependencies**:
