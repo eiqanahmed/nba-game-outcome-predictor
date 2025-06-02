@@ -6,7 +6,7 @@ This project predicts the outcome of upcoming NBA games using machine learning t
 ## ⚙️ Overview:
 
 1. **Data Collection**:  
-   `get_data.py` scrapes NBA games from [basketball-reference.com](https://www.basketball-reference.com) using Playwright. Note: Currently the 'data/standings' in this repository has games from the beginning of the 2018 season to March 28, 2025.
+   `get_data.py` scrapes NBA games from [basketball-reference.com](https://www.basketball-reference.com) using Playwright. Note: Currently the 'data/standings' directory in this repository has games from the beginning of the 2018 season to March 28, 2025.
 
 2. **Data Parsing**:  
    `parse_data.py` converts raw HTML box scores into a pandas dataframe that is saved as a CSV file. Running this file gives you a CSV file titled "nba_games.csv" which contains game data from the last 7 seasons. Note: The repository already contains a "nba_games.csv" file which has data from the beginning of the 2018 season to March 28, 2025.
