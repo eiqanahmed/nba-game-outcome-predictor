@@ -27,7 +27,7 @@ This project predicts the outcome of upcoming NBA games using sequential feature
    - Loads saved model and predictors
    - Predicts results for upcoming games
    - Displays each team’s expected outcome and matchup
-   - NOTE: the repository already contains data a file containing saved predictors (predictors.pkl) and a saved model that is trained on game data from the beginning of the 2017/2018 NBA season to March 28, 2025 using backward feature selection. Thus, you can immediately run predict.py after cloning this repository and unzipping `latest_full.csv.zip`. Make sure the unzipped file is named `latest_full.csv` if it isn't directly after unzipping. 
+   - NOTE: the repository already contains data a file containing saved predictors (predictors.pkl) and a saved model that is trained on game data from the beginning of the 2017/2018 NBA season to March 28, 2025 using backward feature selection. Thus, you can immediately run predict.py after cloning this repository and unzipping `latest_full.csv.zip`. Make sure the unzipped file is named `latest_full.csv` if it isn't already, directly after unzipping. 
 
 ## 🧪 Example Output (of a prediction):
 
