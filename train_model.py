@@ -7,7 +7,6 @@ from sklearn.metrics import accuracy_score
 import requests
 import joblib
 from scipy.special import expit
- from datetime import datetime
 
 
 def add_target(group):
@@ -122,9 +121,9 @@ def find_team_averages(team_fta):
 
 def fill_from_incomplete(row, lookup):
     if pd.isna(row["home_next"]) and pd.isna(row["team_opp_next"]) and pd.isna(row["date_next"]):
-        team = row["team"]
-        if team in lookup.index:
-            replacement = lookup.loc[team]
+        team_ffi = row["team"]
+        if team_ffi in lookup.index:
+            replacement = lookup.loc[team_ffi]
             return pd.Series([
                 replacement["home_next"],
                 replacement["team_opp_next"],
@@ -216,6 +215,8 @@ if __name__ == "__main__":
     # List upcoming games:
     games = data["leagueSchedule"]["gameDates"]
     upcoming_games = []
+
+    from datetime import datetime
 
     today = datetime.today().date()
 
