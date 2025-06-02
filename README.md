@@ -20,7 +20,7 @@ This project predicts the outcome of upcoming NBA games using machine learning t
      - `sfs_model.pkl` – the trained selector with model
      - `predictors.pkl` – the chosen feature columns
      - `latest_full.csv` - this file will give you the final dataset that is used for prediction.
-   - Note: `latest_full.csv.zip` is in this repository, unzipping this file will give you the final dataset that is used for prediction. If you would like to learn how to obtain a new version of this file that contains data from the latest nba games, run `train_model.py` after you have run `get_data.py`, followed by `parse_data.py`.
+   - Note: `latest_full.csv.zip` is in this repository, unzipping this file will give you the final dataset that is used for prediction. If you would like to obtain a new version of this file that contains data from the latest nba games, run `train_model.py` after you have run `get_data.py`, followed by `parse_data.py`.
 
 4. **Prediction**:  
    `predict.py`:
