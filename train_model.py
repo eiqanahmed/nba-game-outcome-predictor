@@ -3,77 +3,13 @@ from sklearn.linear_model import RidgeClassifier
 from sklearn.feature_selection import SequentialFeatureSelector
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import accuracy_score
-import requests
 import joblib
-from scipy.special import expit
 
 
 def add_target(group):
     group = group.copy()  # prevent fragmentation warning
     group["target"] = group["won"].shift(-1)
     return group
-
-
-def predict_upcoming_games(data_pug, model, predictors_pug):
-
-    train = data_pug[data_pug["target"].isin([0, 1])]
-    test = data_pug[data_pug["target"] == 2].copy()
-
-    model.fit(train[predictors_pug], train["target"])
-
-    # Getting the decision scores and convert the score to a probability via sigmoid
-    decision_scores = model.decision_function(test[predictors_pug])
-    test["score"] = decision_scores
-    test["win_probability"] = expit(decision_scores)
-
-    test["prediction"] = model.predict(test[predictors_pug])
-
-    test["prediction"] = test["prediction"].map({0: "loss", 1: "win"})
-
-    test["game_id"] = test.apply(
-        lambda row: "_".join(sorted([row["team_x"], row["team_y"]])) + "_" + str(row["date_next"]),
-        axis=1
-    )
-
-    # We keep only the row (team perspective) with the higher confidence score
-    test = test.sort_values("score", ascending=False).drop_duplicates("game_id")
-
-    output = pd.DataFrame({
-        "home_team": test["team_x"],
-        "opponent": test["team_y"],
-        "prediction": test["prediction"],
-        "win_probability": test["win_probability"],
-        "date": test["date_next"]
-    })
-
-    return output.reset_index(drop=True)
-
-
-# def predict_upcoming_games(data_pug, model, predictors_pug):
-#     # Split the data
-#     train = data_pug[data_pug["target"].isin([0, 1])]
-#     test = data_pug[data_pug["target"] == 2].copy()
-#
-#     # Train the model
-#     model.fit(train[predictors_pug], train["target"])
-#
-#     # Predict
-#     predictions = model.predict(test[predictors_pug])
-#     predictions = pd.Series(predictions, index=test.index)
-#
-#     # Build the output DataFrame
-#     output = pd.DataFrame(index=test.index)
-#
-#     # Rename and include relevant context columns
-#     output["team"] = test["team_x"]
-#     output["opponent"] = test["team_y"]
-#     output["prediction"] = predictions
-#     output["date"] = test["date_next"]
-#
-#     output.reset_index(drop=True, inplace=True)
-#
-#     return output
 
 
 def shift_col(team_sc, col_name):
@@ -157,7 +93,7 @@ if __name__ == "__main__":
 
     sfs = SequentialFeatureSelector(rr,
                                     n_features_to_select=30,
-                                    direction="forward",
+                                    direction="backward",
                                     cv=split,
                                     n_jobs=1
                                     )
@@ -188,85 +124,9 @@ if __name__ == "__main__":
     df["team_opp_next"] = add_col(df, "team_opp")
     df["date_next"] = add_col(df, "date")
 
-    latest_df = df.copy()
+    df = df.copy()
 
-    # Convert date_next to datetime to ensure proper sorting if needed
-
-    latest_df["date_next"] = pd.to_datetime(latest_df["date_next"], errors="coerce")
-
-    # Ensure team identifiers are available
-    team_col = "team"
-
-    # Sort the dataframe by date and select the latest game for each team
-    latest_df_sorted = latest_df.sort_values("date_next", na_position='last')
-    latest_games_per_team = latest_df_sorted.groupby(team_col).tail(1)
-
-    incomplete = latest_games_per_team[
-        latest_games_per_team["home_next"].isna() |
-        latest_games_per_team["team_opp_next"].isna() |
-        latest_games_per_team["date_next"].isna()
-        ]
-
-    url = "https://cdn.nba.com/static/json/staticData/scheduleLeagueV2.json"
-    headers = {"User-Agent": "Mozilla/5.0"}
-    response = requests.get(url, headers=headers)
-    data = response.json()
-
-    # List upcoming games:
-    games = data["leagueSchedule"]["gameDates"]
-    upcoming_games = []
-
-    from datetime import datetime
-
-    today = datetime.today().date()
-
-    for day in games:
-        game_date = datetime.strptime(day["gameDate"], "%m/%d/%Y %H:%M:%S").date()
-
-        if game_date >= today:
-            for g in day["games"]:
-                upcoming_games.append({
-                    "date": game_date.isoformat(),
-                    "visitor": g["awayTeam"]["teamName"],
-                    "home": g["homeTeam"]["teamName"]
-                })
-
-    # Get next game for each team
-    next_game_for_team = {}
-    for g in sorted(upcoming_games, key=lambda x: x["date"]):
-        for team in [g["home"], g["visitor"]]:
-            if team not in next_game_for_team:
-                next_game_for_team[team] = g
-
-    # print(next_game_for_team)
-    # print(len(next_game_for_team))
-
-    # Mapping from 3-letter codes to full names
-    bref_to_full = {
-        'PHI': '76ers', 'BOS': 'Celtics', 'SAS': 'Spurs', 'WAS': 'Wizards', 'IND': 'Pacers',
-        'SAC': 'Kings', 'POR': 'Trail Blazers', 'MIA': 'Heat', 'HOU': 'Rockets', 'OKC': 'Thunder',
-        'DAL': 'Mavericks', 'MEM': 'Grizzlies', 'ORL': 'Magic', 'LAL': 'Lakers', 'CHI': 'Bulls',
-        'ATL': 'Hawks', 'NYK': 'Knicks', 'BRK': 'Nets', 'MIN': 'Timberwolves', 'PHO': 'Suns',
-        'LAC': 'Clippers', 'DEN': 'Nuggets', 'CHO': 'Hornets', 'GSW': 'Warriors', 'UTA': 'Jazz',
-        'TOR': 'Raptors', 'CLE': 'Cavaliers', 'DET': 'Pistons', 'NOP': 'Pelicans', 'MIL': 'Bucks'
-    }
-
-    # Reverse it to map full names back to abbreviations
-    full_to_bref = {v: k for k, v in bref_to_full.items()}
-
-    # Apply and update the DataFrame
-    incomplete[["home_next", "team_opp_next", "date_next"]] = incomplete.apply(
-        lambda row: merge_next_game(row, bref_to_full, next_game_for_team, full_to_bref), axis=1
-    )
-
-    incomplete_lookup = incomplete.set_index("team")[["home_next", "team_opp_next", "date_next"]]
-
-    # Apply to update only missing values
-    latest_df[["home_next", "team_opp_next", "date_next"]] = latest_df.apply(
-        lambda row: fill_from_incomplete(row, incomplete_lookup), axis=1
-    )
-
-    full = latest_df.merge(latest_df[rolling_cols + ["team_opp_next", "date_next", "team"]],
+    full = df.merge(df[rolling_cols + ["team_opp_next", "date_next", "team"]],
                            left_on=["team", "date_next"], right_on=["team_opp_next", "date_next"])
 
     full["date_next"] = full["date_next"].astype(str)
