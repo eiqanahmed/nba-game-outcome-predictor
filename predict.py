@@ -27,7 +27,7 @@ from scipy.special import expit
 # -----------------------------
 # Config
 # -----------------------------
-SCHEDULE_CACHE = "/kaggle/input/schedule/scheduleLeagueV2.json"
+SCHEDULE_CACHE = "scheduleLeagueV2.json"
 # local cache / uploaded file
 SCHEDULE_URL = "https://cdn.nba.com/static/json/staticData/scheduleLeagueV2.json"
 UA_HEADERS = {"User-Agent": "Mozilla/5.0"}
