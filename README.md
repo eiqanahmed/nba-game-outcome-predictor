@@ -1,6 +1,6 @@
 # NBA Game Outcome Predictor 🏀
 
-This project predicts the outcome of upcoming NBA games using sequential feature selection on a RidgeClassifier model that is trained on historical NBA game data.
+This project predicts the outcome of upcoming NBA games using sequential feature selection on a RidgeClassifier model that is trained on historical NBA game data. It predicts the outcome of each NBA team's next game.
 
 
 ## ⚙️ Overview:
